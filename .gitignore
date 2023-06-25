@@ -1,2 +1,4 @@
 config.py
 Databases/
+__pycache__/
+/__pycache__
