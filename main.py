@@ -1,20 +1,125 @@
 import os
 import config
+import sqlite3
 import discord
-import aiosqlite
 from discord.ext import commands
 from Interface.ApplyButtons import ApplyButtons
-from Interface.ViewsAndModals import OrderStatusButtons, OrderRateButtons, OrderDeleteButton
+from Interface.OrderManagingViews import OrderStatusButtons, OrderDeleteButton, OrderRateButtons
 
 class Bot(commands.Bot):
     def __init__(self):
         super().__init__(
             command_prefix="!",
             intents=discord.Intents.all(),
-            application_id=config.APPLICATION_ID
+            activity=discord.Game(name='under development'),
+            status=discord.Status.idle,
+            application_id=config.APPLICATION_ID,
         )
 
     async def setup_hook(self):
+        sqlite3.connect("./Databases/data.sqlite").execute(
+            '''
+                CREATE TABLE IF NOT EXISTS Accounts (
+                    user_id INTEGER,
+                    username TEXT,
+                    Primary Key (user_id)
+                )
+            '''
+        ).execute(
+            '''
+                CREATE TABLE IF NOT EXISTS AuthCodes (
+                    user_id INTEGER,
+                    username TEXT,
+                    code TEXT,
+                    alt_code TEXT,
+                    Primary Key (user_id)
+                )       
+            '''
+        ).execute(
+            '''
+                CREATE TABLE IF NOT EXISTS OrderNo (
+                    order_no INTEGER,
+                    Primary Key (order_no)
+                )
+            '''
+        ).execute(
+            '''
+                CREATE TABLE IF NOT EXISTS OrderMessage (
+                    embed_id INTEGER,
+                    message_id INTEGER,
+                    Primary Key (embed_id)
+                )
+            '''
+        ).execute(
+            '''
+                CREATE TABLE IF NOT EXISTS Orders (
+                    embed_id INTEGER,
+                    order_no INTEGER,
+                    order_type TEXT,
+                    user_id INTEGER,
+                    message_id INTEGER,
+                    status TEXT,
+                    priority TEXT,
+                    timestamp INTEGER,
+                    stars INTEGER,
+                    review TEXT,
+                    Primary Key (embed_id)
+                )
+            '''
+        ).connection.commit()
+
+        sqlite3.connect("./Databases/orders.sqlite").execute(
+            '''
+                CREATE TABLE IF NOT EXISTS LogoOrders (
+                    order_no INTEGER,
+                    user_id INTEGER,
+                    logo_for TEXT,
+                    logo_text TEXT,
+                    logo_color TEXT,
+                    logo_payment TEXT,
+                    logo_vector TEXT,
+                    logo_extra TEXT,
+                    logo_deadline TEXT,
+                    Primary Key (order_no)
+                )
+            '''
+        ).execute(
+            '''
+                CREATE TABLE IF NOT EXISTS VectorOrders (
+                    order_no INTEGER,
+                    user_id INTEGER,
+                    vector_desc TEXT,
+                    vector_payment TEXT,
+                    Primary Key (order_no)
+                )
+            '''
+        ).execute(
+            '''
+                CREATE TABLE IF NOT EXISTS UIOrders (
+                    order_no INTEGER,
+                    user_id INTEGER,
+                    ui_type TEXT,
+                    ui_package TEXT,
+                    ui_needed TEXT,
+                    ui_payment TEXT,
+                    Primary Key (order_no)
+                )
+            '''
+        ).execute(
+            '''
+                CREATE TABLE IF NOT EXISTS GamepassOrders (
+                    order_no INTEGER,
+                    user_id INTEGER,
+                    gamepass_amount TEXT,
+                    gamepass_type TEXT,
+                    gamepass_payment TEXT,
+                    Primary Key (order_no)
+                )
+            '''
+        ).connection.commit()
+        
+        # execute("CREATE TABLE IF NOT EXISTS OrderData (user_id, logo_for, logo_text, logo_color, logo_payment, logo_vector, logo_extra, logo_deadline)")
+        # execute("CREATE TABLE IF NOT EXISTS OrdersInformation (order_no, user_id, logo_for, logo_text, logo_color, logo_payment, logo_vector, logo_extra, logo_deadline, PRIMARY KEY(order_no))")
         self.add_view(ApplyButtons())
         self.add_view(OrderStatusButtons())
         self.add_view(OrderRateButtons())
@@ -39,14 +144,6 @@ bot = Bot()
 
 @bot.event
 async def on_ready():
-    database = await aiosqlite.connect("./Databases/data.db")
-    await database.execute("CREATE TABLE IF NOT EXISTS OrderNo (order_no)")
-    await database.execute("CREATE TABLE IF NOT EXISTS Accounts (user_id, username, PRIMARY KEY(user_id))")
-    await database.execute("CREATE TABLE IF NOT EXISTS AuthCodes (user_id, username, code, alt_code, PRIMARY KEY(user_id))")
-    await database.execute("CREATE TABLE IF NOT EXISTS OrderMessage (embed_id, message_id, PRIMARY KEY(embed_id))")
-    await database.execute("CREATE TABLE IF NOT EXISTS Orders (embed_id, order_no, user_id, message_id, status, priority, timestamp, stars, review, PRIMARY KEY(embed_id))")
-    await database.execute("CREATE TABLE IF NOT EXISTS OrderData (user_id, logo_for, logo_text, logo_color, logo_payment, logo_vector, logo_extra, logo_deadline)")
-    await database.execute("CREATE TABLE IF NOT EXISTS OrdersInformation (order_no, user_id, logo_for, logo_text, logo_color, logo_payment, logo_vector, logo_extra, logo_deadline, PRIMARY KEY(order_no))")
     print(f"{bot.user} is connected to Discord, current latency is {round(bot.latency * 1000)}ms")
 
 @bot.command(name="reload")

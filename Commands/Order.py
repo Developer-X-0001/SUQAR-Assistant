@@ -2,7 +2,7 @@ import discord
 import datetime
 from discord.ext import commands
 from discord import app_commands
-from Interface.ViewsAndModals import OrderButtons
+from Interface.OrderConfirmView import OrderButtons
 
 class Order(commands.Cog):
     def __init__(self, bot: commands.Bot):

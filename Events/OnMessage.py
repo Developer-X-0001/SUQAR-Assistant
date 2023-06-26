@@ -8,6 +8,9 @@ class OnMessage(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
+        if message.author.bot:
+            return
+        
         suqar_role = message.guild.get_role(config.SUQAR_ROLE_ID)
         if suqar_role in message.author.roles or message.author == self.bot.user:
             return
